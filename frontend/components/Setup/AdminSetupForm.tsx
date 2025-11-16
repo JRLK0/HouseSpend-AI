@@ -34,7 +34,12 @@ export function AdminSetupForm({ onSuccess }: { onSuccess: () => void }) {
       await setupApi.createAdmin(data);
       onSuccess();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al crear el administrador');
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.error || 
+                          err.message || 
+                          'Error al crear el administrador';
+      setError(errorMessage);
+      console.error('Error creating admin:', err);
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +55,7 @@ export function AdminSetupForm({ onSuccess }: { onSuccess: () => void }) {
           {...register('username')}
           type="text"
           id="username"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
           placeholder="admin"
         />
         {errors.username && (
@@ -66,7 +71,7 @@ export function AdminSetupForm({ onSuccess }: { onSuccess: () => void }) {
           {...register('email')}
           type="email"
           id="email"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
           placeholder="admin@example.com"
         />
         {errors.email && (
@@ -82,7 +87,7 @@ export function AdminSetupForm({ onSuccess }: { onSuccess: () => void }) {
           {...register('password')}
           type="password"
           id="password"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
           placeholder="••••••••"
         />
         {errors.password && (

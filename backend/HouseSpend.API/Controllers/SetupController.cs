@@ -28,42 +28,77 @@ public class SetupController : ControllerBase
     [HttpGet("check")]
     public async Task<ActionResult<SetupCheckDto>> CheckSetup()
     {
-        var hasAdmin = await _context.Users.AnyAsync(u => u.IsAdmin);
-        return Ok(new SetupCheckDto { IsSetupComplete = hasAdmin });
+        try
+        {
+            var hasAdmin = await _context.Users.AnyAsync(u => u.IsAdmin);
+            return Ok(new SetupCheckDto { IsSetupComplete = hasAdmin });
+        }
+        catch
+        {
+            // Si hay error (probablemente tabla no existe), asumir que no está configurado
+            return Ok(new SetupCheckDto { IsSetupComplete = false });
+        }
     }
 
     [HttpPost("admin")]
     public async Task<ActionResult> CreateAdmin([FromBody] SetupAdminDto dto)
     {
-        // Verificar que no exista un admin
-        var hasAdmin = await _context.Users.AnyAsync(u => u.IsAdmin);
-        if (hasAdmin)
+        try
         {
-            return BadRequest(new { message = "Ya existe un administrador en el sistema" });
+            // Validar datos de entrada
+            if (string.IsNullOrWhiteSpace(dto.Username))
+            {
+                return BadRequest(new { message = "El nombre de usuario es requerido" });
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.Email))
+            {
+                return BadRequest(new { message = "El email es requerido" });
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 6)
+            {
+                return BadRequest(new { message = "La contraseña debe tener al menos 6 caracteres" });
+            }
+
+            // Verificar que no exista un admin
+            var hasAdmin = await _context.Users.AnyAsync(u => u.IsAdmin);
+            if (hasAdmin)
+            {
+                return BadRequest(new { message = "Ya existe un administrador en el sistema" });
+            }
+
+            // Verificar que el username y email no existan
+            var userExists = await _context.Users
+                .AnyAsync(u => u.Username == dto.Username || u.Email == dto.Email);
+
+            if (userExists)
+            {
+                return BadRequest(new { message = "El usuario o email ya existe" });
+            }
+
+            var user = new User
+            {
+                Username = dto.Username.Trim(),
+                Email = dto.Email.Trim().ToLowerInvariant(),
+                PasswordHash = _passwordService.HashPassword(dto.Password),
+                IsAdmin = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Administrador creado exitosamente" });
         }
-
-        // Verificar que el username y email no existan
-        var userExists = await _context.Users
-            .AnyAsync(u => u.Username == dto.Username || u.Email == dto.Email);
-
-        if (userExists)
+        catch (DbUpdateException ex)
         {
-            return BadRequest(new { message = "El usuario o email ya existe" });
+            return StatusCode(500, new { message = "Error al guardar en la base de datos. Verifica que las tablas estén creadas correctamente.", error = ex.InnerException?.Message ?? ex.Message });
         }
-
-        var user = new User
+        catch (Exception ex)
         {
-            Username = dto.Username,
-            Email = dto.Email,
-            PasswordHash = _passwordService.HashPassword(dto.Password),
-            IsAdmin = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        return Ok(new { message = "Administrador creado exitosamente" });
+            return StatusCode(500, new { message = "Error inesperado al crear el administrador", error = ex.Message });
+        }
     }
 
     [HttpPost("openai")]

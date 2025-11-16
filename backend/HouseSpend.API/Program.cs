@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Data;
 using System.Text;
 using HouseSpend.API.Data;
 using HouseSpend.API.Middleware;
@@ -107,7 +108,43 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<HouseSpendDbContext>();
-    context.Database.EnsureCreated();
+    var connection = context.Database.GetDbConnection();
+    
+    // Verificar si la tabla Users existe
+    if (connection.State != ConnectionState.Open)
+    {
+        connection.Open();
+    }
+    
+    try
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'Users'
+            );";
+        var usersTableExists = command.ExecuteScalar() as bool? ?? false;
+        
+        // Si la tabla Users no existe, eliminar la tabla de migraciones y forzar creación
+        if (!usersTableExists)
+        {
+            // Eliminar tabla de migraciones si existe para forzar recreación
+            command.CommandText = @"DROP TABLE IF EXISTS ""__EFMigrationsHistory"";";
+            command.ExecuteNonQuery();
+            
+            // Ahora EnsureCreated creará todas las tablas
+            context.Database.EnsureCreated();
+        }
+    }
+    finally
+    {
+        if (connection.State == ConnectionState.Open)
+        {
+            connection.Close();
+        }
+    }
 }
 
 // Configure the HTTP request pipeline

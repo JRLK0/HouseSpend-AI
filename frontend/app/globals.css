@@ -24,3 +24,27 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Asegurar que inputs y textareas tengan texto visible */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+  color: #111827; /* text-gray-900 */
+  background-color: #ffffff;
+}
+
+/* En modo oscuro, mantener texto oscuro en inputs con fondo blanco */
+@media (prefers-color-scheme: dark) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    color: #111827; /* text-gray-900 */
+    background-color: #ffffff;
+  }
+}
