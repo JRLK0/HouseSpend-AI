@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { ticketsApi, TicketDto } from '@/lib/api-client/api';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
+import { AnimatedCard } from '@/components/ui/animated-card';
+import { motion } from 'framer-motion';
 
 export function TicketList() {
   const [tickets, setTickets] = useState<TicketDto[]>([]);
@@ -61,52 +63,75 @@ export function TicketList() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {tickets.map((ticket) => (
-        <Link
+    <motion.div 
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {tickets.map((ticket, index) => (
+        <AnimatedCard
           key={ticket.id}
-          href={`/tickets/${ticket.id}`}
-          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+          delay={index * 0.1}
+          className="bg-gradient-to-br from-white to-blue-50/30 rounded-xl shadow-md border border-blue-100/50 p-6 relative overflow-hidden"
         >
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {ticket.storeName || 'Ticket sin nombre'}
-              </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                {formatDate(ticket.createdAt)}
-              </p>
-            </div>
-            {ticket.isAnalyzed ? (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                Analizado
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                Pendiente
-              </span>
-            )}
-          </div>
-
-          {ticket.totalAmount && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Total</span>
-                <span className="text-lg font-semibold text-gray-900">
-                  {formatCurrency(ticket.totalAmount)}
-                </span>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
+          <Link href={`/tickets/${ticket.id}`}>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="cursor-pointer relative z-10"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                    {ticket.storeName || 'Ticket sin nombre'}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {formatDate(ticket.createdAt)}
+                  </p>
+                </div>
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  {ticket.isAnalyzed ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200/50 shadow-sm">
+                      Analizado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-gray-100 to-slate-100 text-gray-700 border border-gray-200/50 shadow-sm">
+                      Pendiente
+                    </span>
+                  )}
+                </motion.div>
               </div>
-            </div>
-          )}
 
-          {ticket.productCount > 0 && (
-            <div className="mt-2 text-sm text-gray-500">
-              {ticket.productCount} producto{ticket.productCount !== 1 ? 's' : ''}
-            </div>
-          )}
-        </Link>
+              {ticket.totalAmount && (
+                <motion.div 
+                  className="mt-4 pt-4 border-t border-gray-200/60"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Total</span>
+                    <span className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      {formatCurrency(ticket.totalAmount)}
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+
+              {ticket.productCount > 0 && (
+                <div className="mt-2 text-sm text-gray-500">
+                  {ticket.productCount} producto{ticket.productCount !== 1 ? 's' : ''}
+                </div>
+              )}
+            </motion.div>
+          </Link>
+        </AnimatedCard>
       ))}
-    </div>
+    </motion.div>
   );
 }
 

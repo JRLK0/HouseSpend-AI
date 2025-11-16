@@ -47,9 +47,11 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./frontend:/app
+      # Montar node_modules como volumen anónimo primero para preservarlo
       - /app/node_modules
       - /app/.next
+      # Luego montar el código fuente
+      - ./frontend:/app
     command: npm run dev
 
 volumes:
