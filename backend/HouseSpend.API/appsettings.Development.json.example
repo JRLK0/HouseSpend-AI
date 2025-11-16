@@ -1,0 +1,22 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore": "Information"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=housespend_dev;Username=postgres;Password=your-password-here"
+  },
+  "Jwt": {
+    "SecretKey": "your-jwt-secret-key-here-minimum-32-characters",
+    "Issuer": "HouseSpend-AI",
+    "Audience": "HouseSpend-AI-Users",
+    "ExpirationMinutes": "1440"
+  },
+  "Encryption": {
+    "Key": "your-encryption-key-exactly-32-chars"
+  }
+}
+
